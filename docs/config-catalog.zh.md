@@ -4248,6 +4248,31 @@ export interface Config {
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-web-search-perplexity -->
 
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-webhook-feishu -->
+<a id="deepseek-aidsh-webhook-feishu"></a>
+
+## `@deepseek-ai/dsh-webhook-feishu`
+
+- `inject`: `webServer` · `webhookRuntime` · `credentials`
+- `source`: [`packages/webhook/webhook-feishu/src/index.ts:17`](../packages/webhook/webhook-feishu/src/index.ts)
+
+```ts config-catalog
+/** Required Feishu ingress configuration. */
+export interface Config {
+  /** Adapter instance name carried to rules. */
+  readonly source: string
+  /** Exact absolute route path. */
+  readonly path: string
+  /** Credential reference containing the Feishu verification token. */
+  readonly tokenEnv: string
+  /** Optional credential reference containing the Feishu encrypt key. */
+  readonly encryptKeyEnv?: string
+  /** Positive raw body ceiling in bytes. */
+  readonly maxBodyBytes: number
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-webhook-feishu -->
+
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-webhook-github -->
 <a id="deepseek-aidsh-webhook-github"></a>
 

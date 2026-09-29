@@ -1,0 +1,25 @@
+# Bilingual-pair consistency record for 2026-09-30-feishu-webhook-adapter.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/proposed/feature/2026-09-30-feishu-webhook-adapter.md
+/agent-note-feishu-webhook-provider-adapter:
+  en: 83d18b4de6af09a0
+  zh: 87d589c3594462dd
+/agent-note-feishu-webhook-provider-adapter/problem:
+  en: ee6cdd6dd5f94144
+  zh: 2138288c107e6e22
+/agent-note-feishu-webhook-provider-adapter/proposal:
+  en: b3ac6ee94de5b89e
+  zh: 9fc7cc288dfd60ab
+/agent-note-feishu-webhook-provider-adapter/proposal/scope-boundary:
+  en: 9b65d2088b5391b6
+  zh: 45c93b406c004ed3
+/agent-note-feishu-webhook-provider-adapter/alternatives-considered:
+  en: 2c0b222092b65167
+  zh: b4dbffdf1b5d2051
+/agent-note-feishu-webhook-provider-adapter/acceptance-criteria:
+  en: 2307c277043fdc43
+  zh: 4b3fa97e4171f527
+/agent-note-feishu-webhook-provider-adapter/risks:
+  en: 78b0ed576ed1822d
+  zh: 8a3d7670c230ff42
