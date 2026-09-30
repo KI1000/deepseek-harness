@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-`dsh-webhook-feishu` registers one exact HTTP route on the injected `ctx.webServer`. It bounds the raw JSON body, verifies Feishu tokens (optionally decrypting AES-256-CBC payloads), echoes `url_verification` challenges, projects a provider-neutral delivery, calls `ctx.webhookRuntime.dispatch()`, and returns `200` without waiting for rules or Sessions. The same plugin also ships the Feishu channel: one bundled trusted rule turns each p2p text message into a Session request, and a session/event listener pumps assistant text back to the originating chat. Use it when a deployment needs authenticated Feishu ingress plus a working chat channel for the generic webhook runtime.
+`dsh-webhook-feishu` registers one exact HTTP route on the injected `ctx.webServer`. It bounds the raw JSON body, verifies Feishu tokens (optionally decrypting AES-256-CBC payloads), echoes `url_verification` challenges, projects a provider-neutral delivery, calls `ctx.webhookRuntime.dispatch()`, and returns `200` without waiting for rules or Sessions. The same plugin also ships the Feishu channel: one bundled trusted rule turns each p2p text message and bot-mentioned group text message into a Session request, and a session/event listener pumps assistant text back to the originating chat. Use it when a deployment needs authenticated Feishu ingress plus a working chat channel for the generic webhook runtime.
 
 ## Table of Contents
 
@@ -63,7 +63,7 @@ Only `POST application/json` is accepted. The adapter reads a bounded UTF-8 body
 <a id="feishu-channel"></a>
 ## Feishu channel
 
-The bundled trusted rule `webhook-feishu:<source>` handles only `im.message.receive_v1` deliveries from its own configured source, and only p2p chats whose `message_type` is `text`. It parses the `content` JSON string, rejects empty text, deduplicates `event_id` values in a bounded 512-entry FIFO window, binds the delivery to its `chat_id`, and returns a Session request whose workspace, presets, and optional model come from configuration and whose prompt is the raw message text. The Session title is `<titlePrefix>: <the first 48 title characters of the text>`. The first accepted message of a chat creates its Session; every later message from that chat appends one `user/message` to that same Session while its Agent is live and the Session is unarchived, so a chat keeps one conversation instead of one Session per message.
+The bundled trusted rule `webhook-feishu:<source>` handles only `im.message.receive_v1` deliveries from its own configured source, and only text messages in p2p chats or bot-mentioned group chats. Group handling expects Feishu's `im:message.group_at_msg:readonly` scope, so the platform delivers only @-bot group events. It parses the `content` JSON string, substitutes mention placeholders with their display names, rejects text that is empty after mention removal, deduplicates `event_id` values in a bounded 512-entry FIFO window, binds the delivery to its `chat_id`, and returns a Session request whose workspace, presets, and optional model come from configuration and whose prompt is the message text. The Session title is `<titlePrefix>: <the first 48 title characters of the text>`. The first accepted message of a chat creates its Session; every later message from that chat appends one `user/message` to that same Session while its Agent is live and the Session is unarchived, so a chat keeps one conversation instead of one Session per message.
 
 A `session/event` listener binds each created Session back to its chat when the first `user/message` event carries this adapter's webhook source, then forwards every non-empty `assistant/message` text to `POST /open-apis/im/v1/messages?receive_id_type=chat_id` as a Feishu text message. Sends serialize per Session, and a failed send logs a warning without disturbing the Session.
 
@@ -90,10 +90,10 @@ Independent. Token verification, decryption, and HTTP dispatch do not touch a mo
 - **No TLS** — the injected development WebServer is normally loopback-only behind a TLS reverse proxy or tunnel.
 - **v2.0 events only** — payloads without a v2.0 `header` object are rejected; v1 callback formats are out of scope.
 - **Memory-only channel state** — the deduplication window and the delivery-to-chat, session-to-chat, and chat-to-session bindings live in process memory; a restart loses reply routing, dedup history, and chat continuity.
-- **p2p text only** — group chats, non-text messages, and card interactions create no Session.
+- **Text only** — non-text messages and card interactions create no Session.
 - **Continuity is process-local** — a chat continues its bound Session only while that Agent is live and unarchived; a restart, an archived Session, or two first messages racing before the binding is learned starts another Session.
 - **Every non-empty assistant text sends** — a multi-step turn delivers each step's text as its own Feishu message.
-- **No sender identity checks** — every p2p text the adapter accepts creates a Session; deployments restrict reachability through the Feishu app availability and network exposure.
+- **No sender identity checks** — every accepted p2p text and platform-delivered @-bot group text creates a Session; deployments restrict reachability through the Feishu app availability and network exposure.
 - **No provider acknowledgement of downstream work** — `200` precedes arbitrary rule calls and Session creation.
 - **No form encoding** — Feishu must send `application/json`; `application/x-www-form-urlencoded` is rejected.
 

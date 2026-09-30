@@ -65,8 +65,25 @@ function stringField(record: FeishuJsonObject, field: string): string | undefine
   return typeof value === 'string' ? value : undefined
 }
 
+/** Replace Feishu mention placeholders with their display names. */
+function mentionText(text: string, mentions: unknown): string | undefined {
+  if (!Array.isArray(mentions)) return text
+  let withoutMentionKeys = text
+  for (const raw of mentions) {
+    const mention = asObject(raw)
+    if (mention === undefined) continue
+    const key = stringField(mention, 'key')
+    if (key === undefined || key === '') continue
+    const name = stringField(mention, 'name') ?? ''
+    text = text.split(key).join(name)
+    withoutMentionKeys = withoutMentionKeys.split(key).join('')
+  }
+  if (withoutMentionKeys.trim() === '') return undefined
+  return text
+}
+
 /** Parse one Feishu `content` JSON string into its non-empty `text` value. */
-function messageText(content: string): string | undefined {
+function messageText(content: string, mentions?: unknown): string | undefined {
   let parsed: unknown
   try {
     parsed = JSON.parse(content)
@@ -75,7 +92,8 @@ function messageText(content: string): string | undefined {
   }
   const record = asObject(parsed)
   const text = record === undefined ? undefined : stringField(record, 'text')
-  return text !== undefined && text.trim() !== '' ? text : undefined
+  const unmentioned = text === undefined ? undefined : mentionText(text, mentions)
+  return unmentioned !== undefined && unmentioned.trim() !== '' ? unmentioned : undefined
 }
 
 /** Collapse one message text into a bounded single-line title tail. */
@@ -98,9 +116,10 @@ function assistantText(
 
 /**
  * Create the Feishu channel over an injected webhook runtime: one trusted rule
- * turns each p2p text message into a Session request, and one session/event
- * listener binds created Sessions back to their chats and pumps assistant text
- * out through the sender. All binding state is in-memory and bounded.
+ * turns each p2p text message and each bot-mentioned group text message into
+ * a Session request, and one session/event listener binds created Sessions
+ * back to their chats and pumps assistant text out through the sender. All
+ * binding state is in-memory and bounded.
  * @param ctx - adapter context carrying the webhook runtime.
  * @param config - channel facts and Session-request fields.
  * @param sender - outbound Feishu text sender.
@@ -184,17 +203,21 @@ export function createFeishuChannel(
         ctx.logger.debug(`webhook-feishu: ${JSON.stringify(delivery.deliveryId)} carried no event.message object`)
         return null
       }
-      if (stringField(message, 'chat_type') !== 'p2p') return null
+      const chatType = stringField(message, 'chat_type')
+      const isGroup = chatType === 'group'
+      if (chatType !== 'p2p' && !isGroup) return null
       if (stringField(message, 'message_type') !== 'text') return null
+      const mentions = message['mentions']
+      if (isGroup && (!Array.isArray(mentions) || mentions.length === 0)) return null
       const chatId = stringField(message, 'chat_id')
       const content = stringField(message, 'content')
       if (chatId === undefined || chatId === '' || content === undefined) {
-        ctx.logger.warn(`webhook-feishu: ${JSON.stringify(delivery.deliveryId)} p2p text message lacked chat_id or content`)
+        ctx.logger.warn(`webhook-feishu: ${JSON.stringify(delivery.deliveryId)} ${chatType} text message lacked chat_id or content`)
         return null
       }
-      const text = messageText(content)
+      const text = messageText(content, mentions)
       if (text === undefined) {
-        ctx.logger.warn(`webhook-feishu: ${JSON.stringify(delivery.deliveryId)} text message content was unusable`)
+        ctx.logger.warn(`webhook-feishu: ${JSON.stringify(delivery.deliveryId)} text message content was unusable or carried no visible text`)
         return null
       }
       if (deduplication.has(delivery.deliveryId)) {

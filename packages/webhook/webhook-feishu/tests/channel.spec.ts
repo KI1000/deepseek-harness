@@ -142,12 +142,31 @@ describe('Feishu channel rule', () => {
     })
   })
 
+  it('creates one Session request from a bot-mentioned group text message', () => {
+    const { rule } = channelHarness(recordingFetch().fetchImpl)
+    const event = textEvent(' @_user_1  hello\n  world  ', {
+      chat_type: 'group',
+      mentions: [{ key: '@_user_1', name: 'ToneClaw' }],
+    })
+    expect(rule.run(delivery(event), signal)).toEqual({
+      workspacePath: '/feishu-workspace',
+      title: 'Feishu: ToneClaw hello world',
+      prompt: ' ToneClaw  hello\n  world  ',
+      agentPreset: 'chat',
+      permissionPreset: 'sandbox',
+    })
+  })
+
   it.each([
     ['other source', delivery(textEvent('hi'), 'evt-1', 'secondary')],
     ['other event type', delivery({ name: 'im.message.message_read_v1', payload: messagePayload({}) })],
     ['missing event object', delivery({ name: 'im.message.receive_v1', payload: { schema: '2.0' } })],
     ['non-object message', delivery({ name: 'im.message.receive_v1', payload: { event: { message: 'nope' } } })],
-    ['group chat', delivery(textEvent('hi', { chat_type: 'group' }))],
+    ['group chat without a mention', delivery(textEvent('hi', { chat_type: 'group' }))],
+    ['group chat with only the mention', delivery(textEvent('@_user_1', {
+      chat_type: 'group',
+      mentions: [{ key: '@_user_1', name: 'ToneClaw' }],
+    }))],
     ['non-text message', delivery(textEvent('hi', { message_type: 'image' }))],
     ['missing chat id', delivery(textEvent('hi', { chat_id: '' }))],
     ['missing content', delivery(textEvent('hi', { content: undefined }))],
