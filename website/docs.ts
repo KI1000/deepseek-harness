@@ -155,6 +155,14 @@ const homeAndGuide = pairedPages([
     order: 1,
   },
   {
+    source: 'docs/user/guide/feishu.md',
+    route: 'guide/feishu.md',
+    label: { root: '飞书消息会话', en: 'Feishu message sessions' },
+    sidebar: { root: 'zh-guide', en: 'en-guide' },
+    section: { root: '自动化', en: 'Automation' },
+    order: 3,
+  },
+  {
     source: 'docs/user/guide/schedule.md',
     route: 'guide/schedule.md',
     label: { root: '会话内提醒', en: 'Session reminders' },

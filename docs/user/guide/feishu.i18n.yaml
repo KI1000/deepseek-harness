@@ -1,0 +1,28 @@
+# Bilingual-pair consistency record for feishu.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/user/guide/feishu.md
+/answer-feishu-messages-with-sessions:
+  en: 6ce4eeedd231a041
+  zh: 30ccb98492b4f343
+/answer-feishu-messages-with-sessions/prerequisites:
+  en: ef8b76869475b9a6
+  zh: fddb903a2247530a
+/answer-feishu-messages-with-sessions/start-dsh:
+  en: af40bfb4ac63616a
+  zh: 620d2bb13cce88be
+/answer-feishu-messages-with-sessions/expose-the-dedicated-endpoint:
+  en: eb09b05755083154
+  zh: 7b0a4b2967f0ff63
+/answer-feishu-messages-with-sessions/rule-behavior:
+  en: 05e695f42bc4df56
+  zh: 8ca785fcde8142bc
+/answer-feishu-messages-with-sessions/answering-the-chat:
+  en: 04acd9d36c5dbacc
+  zh: 2096a6c842e10281
+/answer-feishu-messages-with-sessions/known-limitations:
+  en: 39813ab89ff7f016
+  zh: 23da87289450835c
+/answer-feishu-messages-with-sessions/delivery-semantics:
+  en: 3fe64a36ebfc19f7
+  zh: e350414ba38f410b

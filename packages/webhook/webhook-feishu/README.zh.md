@@ -7,24 +7,24 @@ kind: "package-reference"
 
 [English](README.md) | 中文
 
-## Summary
+## 概述
 
 `dsh-webhook-feishu` 在注入的 `ctx.webServer` 上注册一个精确 HTTP 路由。它限制原始 JSON 请求体大小、校验飞书 token（可选解密 AES-256-CBC 载荷）、回显 `url_verification` challenge、投影出提供方中立的事件、调用 `ctx.webhookRuntime.dispatch()`，并返回 `200` 而不等待规则或 Session。同一插件还内置飞书通道：一条受信规则把每条 p2p 文本消息转成 Session 请求，一个 session/event 监听器把 assistant 文本泵回原聊天。当部署需要为通用 webhook 运行时提供经认证的飞书入口以及一个可用的聊天通道时使用它。
 
-## Table of Contents
+## 目录
 
-- [Configuration](#configuration)
-- [HTTP contract](#http-contract)
-- [Feishu channel](#feishu-channel)
-- [Dedicated listener composition](#dedicated-listener-composition)
-- [Model Experience](#model-experience)
-- [Known Limitations and Deferred Work](#known-limitations-and-deferred-work)
-- [Dev Note](#dev-note)
+- [配置](#configuration)
+- [HTTP 约定](#http-contract)
+- [飞书通道](#feishu-channel)
+- [专用监听器组合](#dedicated-listener-composition)
+- [模型体验](#model-experience)
+- [已知限制与延期工作](#known-limitations-and-deferred-work)
+- [开发备注](#dev-note)
 
 -----
 
 <a id="configuration"></a>
-## Configuration
+## 配置
 
 | Key | Meaning |
 |---|---|
@@ -44,7 +44,7 @@ kind: "package-reference"
 只有 `source`、`path`、`tokenEnv`、`maxBodyBytes`、`appIdEnv`、`appSecretEnv`、`workspacePath`、`agentPreset` 和 `permissionPreset` 是必需的。凭据引用在每次请求或换取 token 时解析，因此轮换凭据会影响下一次使用，而无需重新加载插件。
 
 <a id="http-contract"></a>
-## HTTP contract
+## HTTP 约定
 
 只接受 `POST application/json`。适配器读取有界 UTF-8 请求体、解析顶层 JSON 对象，并在应答前解析 verification token 凭据。`type` 为 `url_verification` 的载荷在 token 校验通过后回显其 `challenge`，永不投递。带字符串 `encrypt` 字段的载荷先按飞书的方案解密（SHA-256 派生密钥、AES-256-CBC、16 字节 IV 前缀），再走同样处理。其余载荷必须携带 v2.0 `header` 对象，其中包含 `event_id`、`event_type` 和 `token`；token 在投递前用长度安全的常数时间比较。它从不记录 token、密钥或载荷。
 
@@ -61,7 +61,7 @@ kind: "package-reference"
 `200` 不表示任何规则匹配或 Session 已创建。飞书事件的具体字段校验属于每条规则；适配器只保证经认证的通用 JSON。
 
 <a id="feishu-channel"></a>
-## Feishu channel
+## 飞书通道
 
 内置受信规则 `webhook-feishu:<source>` 只处理来自自身配置 source 的 `im.message.receive_v1` 投递，且只处理 `message_type` 为 `text` 的 p2p 聊天。它解析 `content` JSON 字符串、拒绝空文本、在 512 条 FIFO 有界窗口内按 `event_id` 去重、把投递绑定到其 `chat_id`，并返回一个 Session 请求：workspace、预设和可选 model 来自配置，prompt 是原始消息文本。Session 标题为 `<titlePrefix>: <消息文本标题化的前 48 字符>`。
 
@@ -70,12 +70,12 @@ kind: "package-reference"
 出站发送方用 `appIdEnv` 和 `appSecretEnv` 凭据换取 `tenant_access_token`，以单飞方式缓存并在飞书声明过期前一分钟刷新，每次出站 HTTP 交换有 15 秒超时上限。
 
 <a id="dedicated-listener-composition"></a>
-## Dedicated listener composition
+## 专用监听器组合
 
 常规 Web profile 已拥有 `ctx.webServer`。在只隔离 `webServer` 的分组里挂载另一个 `dsh-host-webserver` 和本适配器；适配器仍继承 credentials 和 `webhookRuntime`。将该路由置于 TLS 反向代理之后，UI 保持独立端口。
 
 <a id="model-experience"></a>
-## Model Experience
+## 模型体验
 
 间接地，通过 `dsh-webhook`：本包不贡献提示词或工具 schema；内置规则拥有每个 Session 请求、模型路由和回复文本。
 
@@ -83,7 +83,7 @@ kind: "package-reference"
 
 无关。token 校验、解密和 HTTP 投递不触碰模型请求；任何新 Session 前缀属于运行时和内置规则的配置。
 
-## Known Limitations and Deferred Work
+## 已知限制与延期工作
 
 <a id="known-limitations-and-deferred-work"></a>
 
@@ -99,7 +99,7 @@ kind: "package-reference"
 
 
 <a id="dev-note"></a>
-### Dev Note
+### 开发备注
 
 <details>
 <summary>维护者的工作上下文 —— 点击展开</summary>
