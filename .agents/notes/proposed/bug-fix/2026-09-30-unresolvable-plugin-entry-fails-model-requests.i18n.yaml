@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-09-30-unresolvable-plugin-entry-fails-model-requests.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/proposed/bug-fix/2026-09-30-unresolvable-plugin-entry-fails-model-requests.md
+/agent-note-an-active-plugin-entry-without-a-resolvable-package-identity-fails-every-model-request:
+  en: dfbb019f6379164c
+  zh: 36cfd6474938d6d0
+/agent-note-an-active-plugin-entry-without-a-resolvable-package-identity-fails-every-model-request/problem:
+  en: 5acd0b40f174377b
+  zh: bf9420ed49c3b17e
+/agent-note-an-active-plugin-entry-without-a-resolvable-package-identity-fails-every-model-request/proposal:
+  en: 2591f931f9e4ab78
+  zh: b5e03974dd97838d
+/agent-note-an-active-plugin-entry-without-a-resolvable-package-identity-fails-every-model-request/alternatives-considered:
+  en: 538898667b366086
+  zh: 8c9e79a372aac9aa
+/agent-note-an-active-plugin-entry-without-a-resolvable-package-identity-fails-every-model-request/acceptance-criteria:
+  en: 5070ef9068b672c0
+  zh: 00f990ea0859370a
+/agent-note-an-active-plugin-entry-without-a-resolvable-package-identity-fails-every-model-request/risks:
+  en: caa1958472c7e4c3
+  zh: e34885c8a2f11166
