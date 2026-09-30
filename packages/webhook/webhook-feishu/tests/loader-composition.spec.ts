@@ -34,7 +34,12 @@ describe('real Loader composition', () => {
       '    source: loader',
       '    path: /feishu',
       '    tokenEnv: DSH_FEISHU_VERIFICATION_TOKEN',
+      '    appIdEnv: DSH_FEISHU_APP_ID',
+      '    appSecretEnv: DSH_FEISHU_APP_SECRET',
       '    maxBodyBytes: 1024',
+      `    workspacePath: '${root.replaceAll('\\', '/')}'`,
+      '    agentPreset: loader',
+      '    permissionPreset: loader',
       '',
     ].join('\n'))
 
@@ -42,7 +47,7 @@ describe('real Loader composition', () => {
     const dependencies = {
       name: 'fixture-dependencies',
       apply(ctx: Context) {
-        ctx.provide('webhookRuntime', { dispatch } as never)
+        ctx.provide('webhookRuntime', { dispatch, register: () => async () => {} } as never)
         ctx.provide('credentials', {
           resolve: async () => ({ value: 'loader-token', source: 'environment' }),
         } as never)

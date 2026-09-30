@@ -4252,7 +4252,8 @@ export interface Config {
 ## `@deepseek-ai/dsh-webhook-feishu`
 
 - `inject`: `webServer` · `webhookRuntime` · `credentials`
-- `source`: [`packages/webhook/webhook-feishu/src/index.ts:17`](../packages/webhook/webhook-feishu/src/index.ts)
+- `refs`: [`WebhookModelSelection`](../packages/webhook/webhook/src/index.ts)
+- `source`: [`packages/webhook/webhook-feishu/src/index.ts:21`](../packages/webhook/webhook-feishu/src/index.ts)
 
 ```ts config-catalog
 /** Required Feishu ingress configuration. */
@@ -4267,6 +4268,20 @@ export interface Config {
   readonly encryptKeyEnv?: string
   /** Positive raw body ceiling in bytes. */
   readonly maxBodyBytes: number
+  /** Credential reference containing the Feishu app id used for outbound replies. */
+  readonly appIdEnv: string
+  /** Credential reference containing the Feishu app secret used for outbound replies. */
+  readonly appSecretEnv: string
+  /** Absolute workspace directory backing every Feishu-created Session. */
+  readonly workspacePath: string
+  /** Agent composition preset applied to every Feishu-created Session. */
+  readonly agentPreset: string
+  /** Permission preset applied to every Feishu-created Session. */
+  readonly permissionPreset: string
+  /** Session title prefix; defaults to `Feishu`. */
+  readonly titlePrefix?: string
+  /** Optional explicit model route for every Feishu-created Session. */
+  readonly model?: WebhookModelSelection
 }
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-webhook-feishu -->

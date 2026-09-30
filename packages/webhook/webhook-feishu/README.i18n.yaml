@@ -9,29 +9,32 @@
   en: 1aa453cea55b1117
   zh: 82e84e1a705f9fc0
 /deepseek-ai-dsh-webhook-feishu/summary:
-  en: 2823af0b892f7024
-  zh: 61f775ee518b77e9
+  en: 7af008d1f66a6746
+  zh: 9f30f7475e8c8d43
 /deepseek-ai-dsh-webhook-feishu/table-of-contents:
-  en: b946752a1c17cd00
-  zh: b946752a1c17cd00
+  en: 6dbc7c3887ac8bcd
+  zh: 6dbc7c3887ac8bcd
 /deepseek-ai-dsh-webhook-feishu/configuration:
-  en: f412ef8977dd379b
-  zh: 7aa5d5cd33217670
+  en: 150295267ebf9050
+  zh: 2cebb3c41bd521b3
 /deepseek-ai-dsh-webhook-feishu/http-contract:
-  en: 93a43cba1536824a
-  zh: 89644e841224a177
+  en: 8ee6b183bba1c63a
+  zh: 0892f742aaa0c771
+/deepseek-ai-dsh-webhook-feishu/feishu-channel:
+  en: bc80302e4effae44
+  zh: 1dca9970fd822058
 /deepseek-ai-dsh-webhook-feishu/dedicated-listener-composition:
   en: 4eac0afb0d7c4d79
   zh: 630600dd6aad487c
 /deepseek-ai-dsh-webhook-feishu/model-experience:
-  en: 17c5ff7cc39c5a2e
-  zh: f5461d561c95e462
+  en: 7b2ec9ef58f22f8e
+  zh: 56c3302978871d07
 /deepseek-ai-dsh-webhook-feishu/model-experience/kv-cache-effect:
-  en: 231db2a2e1325c3d
-  zh: 115e2cf0e45a07f2
+  en: b569f51ea5219853
+  zh: 1abac160fa818ac8
 /deepseek-ai-dsh-webhook-feishu/known-limitations-and-deferred-work:
-  en: 453d83fa84f31bbc
-  zh: e95acffcd4dba3a5
+  en: 52ac500818ce16c3
+  zh: 7cc399a709f4b4ea
 /deepseek-ai-dsh-webhook-feishu/known-limitations-and-deferred-work/dev-note:
-  en: cd9dd4a041ca520e
-  zh: fcb086737ad97929
+  en: b7e42ee74908ab3d
+  zh: 34241d5c958fe07c
