@@ -412,6 +412,9 @@ importers:
       '@deepseek-ai/dsh-webhook':
         specifier: workspace:*
         version: link:../../packages/webhook/webhook
+      '@deepseek-ai/dsh-webhook-feishu':
+        specifier: workspace:*
+        version: link:../../packages/webhook/webhook-feishu
       '@deepseek-ai/dsh-webhook-github':
         specifier: workspace:*
         version: link:../../packages/webhook/webhook-github
