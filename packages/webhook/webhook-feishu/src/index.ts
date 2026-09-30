@@ -15,7 +15,7 @@ export type * from './types.ts'
 /** Cordis function-plugin name. */
 export const name = 'webhook-feishu'
 /** Host services required before the exact route can register. */
-export const inject = ['webServer', 'webhookRuntime', 'credentials']
+export const inject = ['webServer', 'webhookRuntime', 'credentials', 'agents', 'workspaceRegistry']
 
 /** Required Feishu ingress configuration. */
 export interface Config {

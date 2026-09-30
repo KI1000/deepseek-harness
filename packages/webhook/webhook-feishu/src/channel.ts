@@ -2,8 +2,11 @@
 /** Feishu trusted rule, session binding, and outbound reply pump. */
 
 import type { Context } from '@deepseek-ai/cordis'
-import { WebhookRuleId, type WebhookRule, type WebhookSessionRequest } from '@deepseek-ai/dsh-webhook'
-import type {} from '@deepseek-ai/dsh-session'
+import { WebhookRuleId, type VerifiedWebhookDelivery, type WebhookRule, type WebhookSessionRequest } from '@deepseek-ai/dsh-webhook'
+import type {} from '@deepseek-ai/dsh-agent'
+import { boundContextSummary, createUserMessage } from '@deepseek-ai/dsh-llm'
+import type { SessionId } from '@deepseek-ai/dsh-session'
+import type {} from '@deepseek-ai/dsh-workspace'
 import type { FeishuSender } from './sender.ts'
 import type { FeishuJsonObject, FeishuWebhookEvent } from './types.ts'
 
@@ -111,6 +114,7 @@ export function createFeishuChannel(
   const deduplication = new Map<string, true>()
   const chatByDelivery = new Map<string, string>()
   const chatBySession = new Map<string, string>()
+  const sessionByChat = new Map<string, SessionId>()
   const sendQueues = new Map<string, Promise<void>>()
 
   function enqueueSend(sessionId: string, chatId: string, text: string): void {
@@ -127,8 +131,48 @@ export function createFeishuChannel(
     sendQueues.set(sessionId, task)
   }
 
+  const ruleId = WebhookRuleId(`webhook-feishu:${config.source}`)
+
+  /**
+   * Append one inbound message to the chat's existing Session instead of
+   * creating another one. Reuse needs the bound Agent to still be live and
+   * its Session to be outside the archive set; anything else falls back to a
+   * fresh Session so a chat never loses a message to a dead binding.
+   * @param chatId - Feishu chat that sent the message.
+   * @param delivery - exact verified delivery recorded in the message source.
+   * @param text - parsed non-empty message text.
+   * @returns whether the message was appended to the bound Session.
+   */
+  function followUpBoundSession(chatId: string, delivery: VerifiedWebhookDelivery<'feishu'>, text: string): boolean {
+    const sessionId = sessionByChat.get(chatId)
+    if (sessionId === undefined) return false
+    const agent = ctx.agents.get(sessionId)
+    if (agent === undefined) {
+      ctx.logger.debug(`webhook-feishu: bound Session ${JSON.stringify(sessionId)} is not live`)
+      return false
+    }
+    if (ctx.workspaceRegistry.archivedSessionIds.includes(sessionId)) {
+      ctx.logger.debug(`webhook-feishu: bound Session ${JSON.stringify(sessionId)} is archived`)
+      return false
+    }
+    boundedSet(chatBySession, sessionId, chatId, BINDING_CAPACITY)
+    agent.followup(createUserMessage({
+      content: [{ type: 'text', text }],
+      source: {
+        kind: 'webhook',
+        provider: delivery.kind,
+        source: delivery.source,
+        deliveryId: delivery.deliveryId,
+        ruleId,
+        form: 'notice',
+        summary: boundContextSummary(`${delivery.kind} webhook handled by ${ruleId}`),
+      },
+    }))
+    return true
+  }
+
   const rule: WebhookRule<'feishu'> = {
-    id: WebhookRuleId(`webhook-feishu:${config.source}`),
+    id: ruleId,
     kind: 'feishu',
     run: (delivery) => {
       if (delivery.source !== config.source) return null
@@ -159,6 +203,7 @@ export function createFeishuChannel(
       }
       boundedSet(deduplication, delivery.deliveryId, true, DEDUP_CAPACITY)
       boundedSet(chatByDelivery, delivery.deliveryId, chatId, BINDING_CAPACITY)
+      if (followUpBoundSession(chatId, delivery, text)) return null
       return {
         workspacePath: config.workspacePath,
         title: `${config.titlePrefix ?? 'Feishu'}: ${titleText(text)}`,
@@ -175,7 +220,10 @@ export function createFeishuChannel(
       const source = event.data.source
       if (source.kind !== 'webhook' || source.provider !== 'feishu' || source.source !== config.source) return
       const chatId = chatByDelivery.get(source.deliveryId)
-      if (chatId !== undefined) boundedSet(chatBySession, session.id, chatId, BINDING_CAPACITY)
+      if (chatId !== undefined) {
+        boundedSet(chatBySession, session.id, chatId, BINDING_CAPACITY)
+        boundedSet(sessionByChat, chatId, session.id, BINDING_CAPACITY)
+      }
       return
     }
     if (event.type !== 'assistant/message') return

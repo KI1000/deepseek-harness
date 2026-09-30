@@ -14,7 +14,7 @@ The [adapter note](2026-09-30-feishu-webhook-adapter.md) scoped rules and replie
 
 Ship the channel inside `dsh-webhook-feishu`: one trusted rule registered on `ctx.webhookRuntime` plus one `session/event` listener created in the same plugin fiber.
 
-The rule serves only its configured source, only p2p chats, and only `message_type` `text`. It parses Feishu's JSON-string `content`, rejects empty text, deduplicates `event_id` in a bounded FIFO window, binds delivery to `chat_id`, and returns a Session request whose workspace, presets, and optional model come from plugin configuration.
+The rule serves only its configured source, only p2p chats, and only `message_type` `text`. It parses Feishu's JSON-string `content`, rejects empty text, deduplicates `event_id` in a bounded FIFO window, binds delivery to `chat_id`, and returns a Session request whose workspace, presets, and optional model come from plugin configuration. A chat whose bound Session is still live and unarchived continues it through `ctx.agents.followup()` instead of creating another Session.
 
 The listener re-binds a Session to its chat when the first `user/message` event carries this adapter's webhook source, then forwards each non-empty `assistant/message` text to Feishu's IM send API through a sender that caches `tenant_access_token` with single-flight refresh and a per-request timeout.
 
@@ -35,6 +35,8 @@ This decision supersedes the adapter note's scope boundary and its rejected alte
 - The package typechecks, and the vitest suite passes with full line, branch, and function coverage of the rule, binding, pump, and sender.
 
 - Non-p2p, non-text, malformed, and redelivered messages create no Session; a p2p text message creates one request with the configured workspace, presets, title, and prompt.
+
+- A later message from a chat whose bound Session is live and unarchived appends one `user/message` to that Session and creates no request.
 
 - An assistant text for a bound Session posts exactly one Feishu text message to the bound chat; unbound sessions and textless steps send nothing.
 

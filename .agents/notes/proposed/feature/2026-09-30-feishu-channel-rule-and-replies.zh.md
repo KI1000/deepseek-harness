@@ -14,7 +14,7 @@ Status: proposed
 
 把通道放进 `dsh-webhook-feishu`：在同一插件 fiber 里注册 `ctx.webhookRuntime` 上的一条受信规则，外加一个 `session/event` 监听器。
 
-规则只服务自身配置的 source、只处理 p2p 聊天、只处理 `message_type` 为 `text` 的消息。它解析飞书的 JSON 字符串 `content`、拒绝空文本、在有界 FIFO 窗口内按 `event_id` 去重、把投递绑定到 `chat_id`，并返回一个 Session 请求：workspace、预设与可选 model 来自插件配置。
+规则只服务自身配置的 source、只处理 p2p 聊天、只处理 `message_type` 为 `text` 的消息。它解析飞书的 JSON 字符串 `content`、拒绝空文本、在有界 FIFO 窗口内按 `event_id` 去重、把投递绑定到 `chat_id`，并返回一个 Session 请求：workspace、预设与可选 model 来自插件配置。当聊天已绑定的 Session 仍存活且未归档时，它通过 `ctx.agents.followup()` 继续该 Session，而不再新建。
 
 监听器在首条 `user/message` 事件携带本适配器 webhook source 时把 Session 重新绑定到聊天，然后把每条非空 `assistant/message` 文本经出站发送方送到飞书 IM 发送 API；发送方以单飞方式缓存 `tenant_access_token` 并带单请求超时。
 
@@ -35,6 +35,8 @@ Status: proposed
 - 包通过类型检查，vitest 全绿并完整覆盖规则、绑定、泵与发送方的行、分支与函数。
 
 - 非 p2p、非文本、畸形与重投递消息不创建 Session；p2p 文本消息创建一个带配置 workspace、预设、标题与 prompt 的请求。
+
+- 当已绑定 Session 存活且未归档时，该聊天的后续消息向其追加一条 `user/message`，且不创建请求。
 
 - 已绑定 Session 的 assistant 文本恰好向绑定聊天发送一条飞书文本消息；未绑定 Session 与无文本步骤不发送。
 

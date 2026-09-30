@@ -61,7 +61,7 @@ Encrypt key: optional; set encryptKeyEnv on the adapter row when the app encrypt
 
 ## 规则行为
 
-该内置规则只服务它已配置的来源、只处理 `p2p` 会话、只处理 `text` 消息。它会解析飞书以 JSON 字符串承载的 `content`，拒绝空文本，在有界内存窗口中对 `event_id` 去重，并返回一个 Session 请求：其中的 workspace、preset、标题与提示词都来自插件配置。群聊、非文本消息与重复投递的事件都不会创建 Session。
+该内置规则只服务它已配置的来源、只处理 `p2p` 会话、只处理 `text` 消息。它会解析飞书以 JSON 字符串承载的 `content`，拒绝空文本，在有界内存窗口中对 `event_id` 去重，并返回一个 Session 请求：其中的 workspace、preset、标题与提示词都来自插件配置。群聊、非文本消息与重复投递的事件都不会创建 Session。 聊天的第一条被接受消息创建其 Session；该聊天的后续消息在其 Agent 仍存活且未归档时继续同一 Session，因此一个聊天保持一段对话。
 
 当所创建 Session 的首条 `user/message` 事件带有此 adapter 的 webhook source 时，该次投递便会绑定到对应会话，因此回复会跟随发起该 Session 的会话。
 
@@ -73,7 +73,7 @@ Encrypt key: optional; set encryptKeyEnv on the adapter row when the app encrypt
 
 - 去重窗口与两张绑定表都只存在于进程内存，因此重启会丢失回复路由与去重历史；重启后需重新给机器人发消息。
 - 在去重窗口之外到达的飞书重运会创建另一个 Session。
-- 每条被接受的消息都会创建全新的 Session，因此同一会话在多条消息之间没有对话记忆。
+- 连续性仅限进程内：只有当绑定的 Agent 仍存活且未归档时，聊天才继续其 Session，因此重启或已归档的 Session 会新建。
 - 每段非空 assistant 文本都会单独发送一条消息，因此多步 turn 会以多条飞书消息到达。
 - 监听器只提供明文 HTTP；TLS 由其前面的反向代理或 tunnel 负责。
 - adapter 只接受 v2.0 `header` 形状的事件，且只接受 `application/json`。

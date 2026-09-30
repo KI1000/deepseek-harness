@@ -51,6 +51,8 @@ describe('real Loader composition', () => {
         ctx.provide('credentials', {
           resolve: async () => ({ value: 'loader-token', source: 'environment' }),
         } as never)
+        ctx.provide('agents', { get: () => undefined } as never)
+        ctx.provide('workspaceRegistry', { archivedSessionIds: [] } as never)
       },
     }
     context = new Context()

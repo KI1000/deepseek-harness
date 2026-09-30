@@ -61,7 +61,7 @@ Encrypt key: optional; set encryptKeyEnv on the adapter row when the app encrypt
 
 ## Rule behavior
 
-The bundled rule serves only its configured source, only `p2p` chats, and only `text` messages. It parses Feishu's JSON-string `content`, rejects empty text, deduplicates `event_id` in a bounded in-memory window, and returns a Session request whose workspace, presets, title, and prompt come from plugin configuration. Group chats, non-text messages, and redelivered events create no Session.
+The bundled rule serves only its configured source, only `p2p` chats, and only `text` messages. It parses Feishu's JSON-string `content`, rejects empty text, deduplicates `event_id` in a bounded in-memory window, and returns a Session request whose workspace, presets, title, and prompt come from plugin configuration. Group chats, non-text messages, and redelivered events create no Session. The first accepted message of a chat creates its Session; later messages from that chat continue the same Session while its Agent is live and unarchived, so a chat keeps one conversation.
 
 A delivery binds to its chat when the created Session's first `user/message` event carries this adapter's webhook source, so replies follow the chat that started the Session.
 
@@ -73,7 +73,7 @@ Every non-empty assistant text of a bound Session posts one Feishu text message 
 
 - The deduplication window and both binding tables live in process memory, so a restart drops reply routing and dedup history; re-message the bot after a restart.
 - A Feishu retry that arrives after the deduplication window passes creates another Session.
-- Every accepted message creates a fresh Session, so a chat keeps no conversation memory across messages.
+- Continuity is process-local: a chat continues its bound Session while that Agent is live and unarchived, so a restart or an archived Session starts a fresh one.
 - Every non-empty assistant text sends its own message, so a multi-step turn arrives as several Feishu messages.
 - The listener serves plain HTTP; TLS belongs to the reverse proxy or tunnel in front of it.
 - The adapter accepts events only in the v2.0 `header` shape and only as `application/json`.

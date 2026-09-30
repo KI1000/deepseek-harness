@@ -63,7 +63,7 @@ Only `POST application/json` is accepted. The adapter reads a bounded UTF-8 body
 <a id="feishu-channel"></a>
 ## Feishu channel
 
-The bundled trusted rule `webhook-feishu:<source>` handles only `im.message.receive_v1` deliveries from its own configured source, and only p2p chats whose `message_type` is `text`. It parses the `content` JSON string, rejects empty text, deduplicates `event_id` values in a bounded 512-entry FIFO window, binds the delivery to its `chat_id`, and returns a Session request whose workspace, presets, and optional model come from configuration and whose prompt is the raw message text. The Session title is `<titlePrefix>: <the first 48 title characters of the text>`.
+The bundled trusted rule `webhook-feishu:<source>` handles only `im.message.receive_v1` deliveries from its own configured source, and only p2p chats whose `message_type` is `text`. It parses the `content` JSON string, rejects empty text, deduplicates `event_id` values in a bounded 512-entry FIFO window, binds the delivery to its `chat_id`, and returns a Session request whose workspace, presets, and optional model come from configuration and whose prompt is the raw message text. The Session title is `<titlePrefix>: <the first 48 title characters of the text>`. The first accepted message of a chat creates its Session; every later message from that chat appends one `user/message` to that same Session while its Agent is live and the Session is unarchived, so a chat keeps one conversation instead of one Session per message.
 
 A `session/event` listener binds each created Session back to its chat when the first `user/message` event carries this adapter's webhook source, then forwards every non-empty `assistant/message` text to `POST /open-apis/im/v1/messages?receive_id_type=chat_id` as a Feishu text message. Sends serialize per Session, and a failed send logs a warning without disturbing the Session.
 
@@ -72,7 +72,7 @@ The outbound sender exchanges the `appIdEnv` and `appSecretEnv` credentials for 
 <a id="dedicated-listener-composition"></a>
 ## Dedicated listener composition
 
-The normal Web profile already owns `ctx.webServer`. Mount another `dsh-host-webserver` and this adapter inside a group that isolates only `webServer`; the adapter still inherits credentials and `webhookRuntime`. Serve the route behind a TLS reverse proxy while the UI remains on its own port.
+The normal Web profile already owns `ctx.webServer`. Mount another `dsh-host-webserver` and this adapter inside a group that isolates only `webServer`; the adapter still inherits credentials, `webhookRuntime`, `agents`, and `workspaceRegistry`. Serve the route behind a TLS reverse proxy while the UI remains on its own port.
 
 <a id="model-experience"></a>
 ## Model Experience
@@ -89,9 +89,9 @@ Independent. Token verification, decryption, and HTTP dispatch do not touch a mo
 
 - **No TLS** — the injected development WebServer is normally loopback-only behind a TLS reverse proxy or tunnel.
 - **v2.0 events only** — payloads without a v2.0 `header` object are rejected; v1 callback formats are out of scope.
-- **Memory-only channel state** — the deduplication window and the delivery-to-chat and session-to-chat bindings live in process memory; a restart loses reply routing and dedup history.
+- **Memory-only channel state** — the deduplication window and the delivery-to-chat, session-to-chat, and chat-to-session bindings live in process memory; a restart loses reply routing, dedup history, and chat continuity.
 - **p2p text only** — group chats, non-text messages, and card interactions create no Session.
-- **One Session per message** — every accepted message creates a fresh Session, so a chat carries no conversation memory across messages.
+- **Continuity is process-local** — a chat continues its bound Session only while that Agent is live and unarchived; a restart, an archived Session, or two first messages racing before the binding is learned starts another Session.
 - **Every non-empty assistant text sends** — a multi-step turn delivers each step's text as its own Feishu message.
 - **No sender identity checks** — every p2p text the adapter accepts creates a Session; deployments restrict reachability through the Feishu app availability and network exposure.
 - **No provider acknowledgement of downstream work** — `200` precedes arbitrary rule calls and Session creation.
