@@ -48,7 +48,7 @@ plugin-package-inventory-deepseek: cannot resolve active package "@deepseek-ai/d
 
 **只写文档，不改代码。** 这条要求确实存在而且现在缺失，但文档帮不到一个已经在运行期坏掉的组合；而且文档门禁也不知道某个包到底该由哪个 app、profile 或 bundle 来负责。
 
-**在挂载用的 overlay 里关掉清单条目。** 今天这样做是可行的，上游的 snapshot 配置正是这么做的（`- id: plugin-package-inventory-deepseek` 配 `disabled: true`，约十五个文件），但这是拿整个会话的 provider 元数据去换这次挂载，而且用户 overlay 也不是学这条规则的地方。
+**在挂载用的 overlay 里关掉清单条目。** 今天这样做是可行的，上游的 snapshot 配置正是这么做的（`- id: plugin-package-inventory-deepseek` 配 `disabled: true`，共二十八个 snapshot 配置），但这是拿整个会话的 provider 元数据去换这次挂载，而且用户 overlay 也不是学这条规则的地方。
 
 **只要求声明，不要安装这一步。** 被上面的实测否掉：已声明但未链接的包依然解析不出，只做一半规则会留下同样的崩溃。
 

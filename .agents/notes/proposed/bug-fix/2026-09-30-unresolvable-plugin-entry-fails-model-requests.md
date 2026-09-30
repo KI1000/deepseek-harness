@@ -48,7 +48,7 @@ Two mechanisms combine to make the trap. Loader activation resolves modules thro
 
 **Document the requirement only, with no code change.** The requirement is real and missing today, but documentation cannot help a composition that is already broken at runtime, and the doc gate does not know which app, profile, or bundle should own a given package.
 
-**Disable the inventory entry in the mounting overlay.** This works today and upstream snapshot configs do exactly this (`- id: plugin-package-inventory-deepseek` with `disabled: true`) in roughly fifteen files, but it buys the mount at the cost of the provider metadata for the whole session, and a user overlay is the wrong place to learn that rule.
+**Disable the inventory entry in the mounting overlay.** This works today and upstream snapshot configs do exactly this (`- id: plugin-package-inventory-deepseek` with `disabled: true`) in all twenty-eight snapshot configurations, but it buys the mount at the cost of the provider metadata for the whole session, and a user overlay is the wrong place to learn that rule.
 
 **Require the declaration alone, without the install step.** Rejected by the measurement above: a declared-but-unlinked package stays unresolvable, so half the rule would leave the same crash in place.
 
