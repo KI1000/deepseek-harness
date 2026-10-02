@@ -18,6 +18,7 @@ English | [中文](README.zh.md)
 - [External ingress contract](#external-ingress-contract)
 - [Model Experience](#model-experience)
 - [Known Limitations and Deferred Work](#known-limitations-and-deferred-work)
+- [Dev Note](#dev-note)
 
 -----
 
@@ -50,20 +51,32 @@ A `session/event` listener binds each created Session back to its chat, then for
 
 The transport adapter must dispatch a verified `feishu` delivery with a stable `deliveryId`, the Feishu event name, and a v2.0 payload containing `event.message`. It owns connection lifecycle, reconnects, and transport-level retries. The channel owns only rule validation, deduplication, Session continuity, and outbound replies.
 
+**Runtime invariant:** No companion is published because rule acceptance, Session binding, and reply serialization are observable through the webhook and Session contracts; the channel owns no additional mutable runtime relation.
+
 <a id="model-experience"></a>
 ## Model Experience
 
-Indirectly, through `dsh-webhook`: this package contributes no prompt or tool schema; the bundled rule owns each Session request, model route, and reply text.
+Indirectly, through `dsh-webhook`, this package contributes no prompt or tool schema; the bundled rule owns each Session request, model route, and reply text.
 
 #### KV Cache effect
 
 Independent. Transport dispatch does not touch a model request; any new Session prefix belongs to the runtime and the bundled rule's configuration.
 
-<a id="known-limitations-and-deferred-work"></a>
 ## Known Limitations and Deferred Work
+<a id="known-limitations-and-deferred-work"></a>
 
 - **Text only** — non-text messages and card interactions create no Session.
 - **Memory-only channel state** — deduplication and delivery/Session/chat bindings live in process memory; a restart loses routing and continuity.
 - **Continuity is process-local** — a chat continues its bound Session only while that Agent is live and unarchived.
 - **Every non-empty assistant text sends** — a multi-step turn delivers each step's text as its own Feishu message.
 - **No sender identity checks** — accepted p2p text and platform-delivered @-bot group text create a Session; deployment reachability is controlled by the Feishu app.
+
+<a id="dev-note"></a>
+### Dev Note
+
+<details>
+<summary>Working context for maintainers — click to expand</summary>
+
+None.
+
+</details>
