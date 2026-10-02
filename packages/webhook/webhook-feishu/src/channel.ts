@@ -34,6 +34,8 @@ export interface FeishuChannelConfig {
   readonly permissionPreset: string
   /** Session title prefix; defaults to `Feishu`. */
   readonly titlePrefix?: string
+  /** Feishu bot display name; matching mention placeholders are removed from prompts. */
+  readonly botName?: string
   /** Optional explicit model route forwarded verbatim to the runtime. */
   readonly model?: WebhookSessionRequest['model']
 }
@@ -66,7 +68,7 @@ function stringField(record: FeishuJsonObject, field: string): string | undefine
 }
 
 /** Replace Feishu mention placeholders with their display names. */
-function mentionText(text: string, mentions: unknown): string | undefined {
+function mentionText(text: string, mentions: unknown, botName?: string): string | undefined {
   if (!Array.isArray(mentions)) return text
   let withoutMentionKeys = text
   for (const raw of mentions) {
@@ -75,7 +77,9 @@ function mentionText(text: string, mentions: unknown): string | undefined {
     const key = stringField(mention, 'key')
     if (key === undefined || key === '') continue
     const name = stringField(mention, 'name') ?? ''
-    text = text.split(key).join(name)
+    const isBot = botName !== undefined && botName !== ''
+      && name.trim().toLowerCase() === botName.trim().toLowerCase()
+    text = text.split(key).join(isBot ? '' : name)
     withoutMentionKeys = withoutMentionKeys.split(key).join('')
   }
   if (withoutMentionKeys.trim() === '') return undefined
@@ -83,7 +87,7 @@ function mentionText(text: string, mentions: unknown): string | undefined {
 }
 
 /** Parse one Feishu `content` JSON string into its non-empty `text` value. */
-function messageText(content: string, mentions?: unknown): string | undefined {
+function messageText(content: string, mentions?: unknown, botName?: string): string | undefined {
   let parsed: unknown
   try {
     parsed = JSON.parse(content)
@@ -92,7 +96,7 @@ function messageText(content: string, mentions?: unknown): string | undefined {
   }
   const record = asObject(parsed)
   const text = record === undefined ? undefined : stringField(record, 'text')
-  const unmentioned = text === undefined ? undefined : mentionText(text, mentions)
+  const unmentioned = text === undefined ? undefined : mentionText(text, mentions, botName)
   return unmentioned !== undefined && unmentioned.trim() !== '' ? unmentioned : undefined
 }
 
@@ -215,7 +219,7 @@ export function createFeishuChannel(
         ctx.logger.warn(`webhook-feishu: ${JSON.stringify(delivery.deliveryId)} ${chatType} text message lacked chat_id or content`)
         return null
       }
-      const text = messageText(content, mentions)
+      const text = messageText(content, mentions, config.botName)
       if (text === undefined) {
         ctx.logger.warn(`webhook-feishu: ${JSON.stringify(delivery.deliveryId)} text message content was unusable or carried no visible text`)
         return null

@@ -157,6 +157,18 @@ describe('Feishu channel rule', () => {
     })
   })
 
+  it('removes the configured bot mention while retaining other display names', () => {
+    const { rule } = channelHarness(recordingFetch().fetchImpl, { botName: 'ToneClaw' })
+    const event = textEvent('@_user_1 tell @_user_2 hello', {
+      chat_type: 'group',
+      mentions: [
+        { key: '@_user_1', name: 'ToneClaw' },
+        { key: '@_user_2', name: 'Alice' },
+      ],
+    })
+    expect(rule.run(delivery(event), signal)).toMatchObject({ prompt: ' tell Alice hello' })
+  })
+
   it.each([
     ['other source', delivery(textEvent('hi'), 'evt-1', 'secondary')],
     ['other event type', delivery({ name: 'im.message.message_read_v1', payload: messagePayload({}) })],

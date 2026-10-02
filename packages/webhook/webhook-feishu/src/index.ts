@@ -41,6 +41,8 @@ export interface Config {
   readonly permissionPreset: string
   /** Session title prefix; defaults to `Feishu`. */
   readonly titlePrefix?: string
+  /** Feishu bot display name; matching group mention placeholders are removed from prompts. */
+  readonly botName?: string
   /** Optional explicit model route for every Feishu-created Session. */
   readonly model?: WebhookModelSelection
 }
@@ -57,6 +59,7 @@ export const Config: z<Config> = z.object({
   agentPreset: z.string().required(),
   permissionPreset: z.string().required(),
   titlePrefix: z.string(),
+  botName: z.string(),
   model: z.object({
     provider: z.string(),
     model: z.string(),
@@ -104,6 +107,9 @@ function assertConfig(config: Config): void {
   if (config.titlePrefix !== undefined && config.titlePrefix.trim() === '') {
     throw new Error('webhook-feishu titlePrefix must be a non-empty string when present')
   }
+  if (config.botName !== undefined && config.botName.trim() === '') {
+    throw new Error('webhook-feishu botName must be a non-empty string when present')
+  }
   resolvedModel(config)
 }
 
@@ -121,6 +127,7 @@ export function apply(ctx: Context, config: Config): void {
     agentPreset: config.agentPreset,
     permissionPreset: config.permissionPreset,
     ...(config.titlePrefix === undefined ? {} : { titlePrefix: config.titlePrefix }),
+    ...(config.botName === undefined ? {} : { botName: config.botName }),
     ...(model === undefined ? {} : { model }),
   }
   const route = {

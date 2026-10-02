@@ -39,6 +39,7 @@ kind: "package-reference"
 | `agentPreset` | 发布前应用的 Agent 组合预设。 |
 | `permissionPreset` | prompt 受理前应用的权限预设。 |
 | `titlePrefix` | 可选的 Session 标题前缀；默认为 `Feishu`。 |
+| `botName` | 可选的飞书机器人显示名；群聊 prompt 会移除匹配的 mention 占位符。 |
 | `model` | 可选的显式 `provider`/`model` 路由，可带 `maxTokens`；缺省使用当前默认。 |
 
 只有 `source`、`path`、`tokenEnv`、`maxBodyBytes`、`appIdEnv`、`appSecretEnv`、`workspacePath`、`agentPreset` 和 `permissionPreset` 是必需的。凭据引用在每次请求或换取 token 时解析，因此轮换凭据会影响下一次使用，而无需重新加载插件。
@@ -63,7 +64,7 @@ kind: "package-reference"
 <a id="feishu-channel"></a>
 ## 飞书通道
 
-内置受信规则 `webhook-feishu:<source>` 只处理来自自身配置 source 的 `im.message.receive_v1` 投递，且只处理 p2p 文本消息，或群聊中 @ 机器人的文本消息（依赖 `im:message.group_at_msg:readonly`，飞书平台因此只投递 @ 机器人的群事件）。它解析 `content` JSON 字符串、把 mention 占位符替换为显示名、拒绝替换后没有可见文本的消息、在 512 条 FIFO 有界窗口内按 `event_id` 去重、把投递绑定到其 `chat_id`，并返回一个 Session 请求：workspace、预设和可选 model 来自配置，prompt 是原始消息文本。Session 标题为 `<titlePrefix>: <消息文本标题化的前 48 字符>`。聊天的第一条被接受消息创建其 Session；此后同一聊天的每条消息都会在该 Session 的 Agent 仍存活且未被归档时向同一 Session 追加一条 `user/message`，因此一个聊天保持一段对话，而不是每条消息一个 Session。
+内置受信规则 `webhook-feishu:<source>` 只处理来自自身配置 source 的 `im.message.receive_v1` 投递，且只处理 p2p 文本消息，或群聊中 @ 机器人的文本消息（依赖 `im:message.group_at_msg:readonly`，飞书平台因此只投递 @ 机器人的群事件）。它解析 `content` JSON 字符串、把 mention 占位符替换为显示名、移除匹配可选 `botName` 的占位符、拒绝替换后没有可见文本的消息、在 512 条 FIFO 有界窗口内按 `event_id` 去重、把投递绑定到其 `chat_id`，并返回一个 Session 请求：workspace、预设和可选 model 来自配置，prompt 是消息文本。Session 标题为 `<titlePrefix>: <消息文本标题化的前 48 字符>`。聊天的第一条被接受消息创建其 Session；此后同一聊天的每条消息都会在该 Session 的 Agent 仍存活且未被归档时向同一 Session 追加一条 `user/message`，因此一个聊天保持一段对话，而不是每条消息一个 Session。
 
 一个 `session/event` 监听器在首条 `user/message` 事件携带本适配器的 webhook source 时把创建的 Session 绑回其聊天，然后把每条非空 `assistant/message` 文本以飞书文本消息的形式发送到 `POST /open-apis/im/v1/messages?receive_id_type=chat_id`。发送按 Session 串行化，失败的发送只记录警告，不影响 Session。
 
