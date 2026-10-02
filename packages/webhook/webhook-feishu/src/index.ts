@@ -1,34 +1,24 @@
-/** Signed Feishu HTTP adapter for the provider-neutral webhook runtime. */
+/** Feishu channel for an externally supplied webhook delivery transport. */
 
 import { isAbsolute } from 'node:path'
 import type { Context } from '@deepseek-ai/cordis'
 import { credentialRef } from '@deepseek-ai/dsh-credentials'
-import type {} from '@deepseek-ai/dsh-host-webserver'
 import type { WebhookModelSelection } from '@deepseek-ai/dsh-webhook'
 import z from '@deepseek-ai/schemastery'
 import { createFeishuChannel } from './channel.ts'
-import { createFeishuWebhookHandler } from './handler.ts'
 import { createFeishuSender } from './sender.ts'
 
 export type * from './types.ts'
 
 /** Cordis function-plugin name. */
 export const name = 'webhook-feishu'
-/** Host services required before the exact route can register. */
-export const inject = ['webServer', 'webhookRuntime', 'credentials', 'agents', 'workspaceRegistry']
+/** Host services required to turn external deliveries into Feishu Sessions and replies. */
+export const inject = ['webhookRuntime', 'credentials', 'agents', 'workspaceRegistry']
 
-/** Required Feishu ingress configuration. */
+/** Feishu channel configuration for a transport such as the long-connection ingress. */
 export interface Config {
   /** Adapter instance name carried to rules. */
   readonly source: string
-  /** Exact absolute route path. */
-  readonly path: string
-  /** Credential reference containing the Feishu verification token. */
-  readonly tokenEnv: string
-  /** Optional credential reference containing the Feishu encrypt key. */
-  readonly encryptKeyEnv?: string
-  /** Positive raw body ceiling in bytes. */
-  readonly maxBodyBytes: number
   /** Credential reference containing the Feishu app id used for outbound replies. */
   readonly appIdEnv: string
   /** Credential reference containing the Feishu app secret used for outbound replies. */
@@ -49,10 +39,6 @@ export interface Config {
 
 export const Config: z<Config> = z.object({
   source: z.string().required(),
-  path: z.string().required(),
-  tokenEnv: z.string().role('credential-ref').required(),
-  encryptKeyEnv: z.string().role('credential-ref'),
-  maxBodyBytes: z.number().step(1).min(1).max(Number.MAX_SAFE_INTEGER).required(),
   appIdEnv: z.string().role('credential-ref').required(),
   appSecretEnv: z.string().role('credential-ref').required(),
   workspacePath: z.string().required(),
@@ -67,7 +53,6 @@ export const Config: z<Config> = z.object({
   }),
 })
 
-/** Validate route and source facts that Schemastery cannot express. */
 /** Normalize the optional model route; schemastery materializes the nested object even when the key is absent. */
 function resolvedModel(config: Config): WebhookModelSelection | undefined {
   const provider = config.model?.provider
@@ -86,14 +71,10 @@ function resolvedModel(config: Config): WebhookModelSelection | undefined {
   }
 }
 
-/** Validate route and source facts that Schemastery cannot express. */
+/** Validate channel facts that Schemastery cannot express. */
 function assertConfig(config: Config): void {
   if (config.source.trim() !== config.source || config.source === '') {
     throw new Error('webhook-feishu source must be a non-empty trimmed string')
-  }
-  if (!config.path.startsWith('/') || config.path === '/' || config.path.endsWith('/')
-    || config.path.includes('?') || config.path.includes('#')) {
-    throw new Error('webhook-feishu path must be an absolute non-root pathname without a trailing slash, query, or fragment')
   }
   if (!isAbsolute(config.workspacePath)) {
     throw new Error('webhook-feishu workspacePath must be an absolute path')
@@ -113,7 +94,7 @@ function assertConfig(config: Config): void {
   resolvedModel(config)
 }
 
-/** Register one signed Feishu endpoint plus the bundled rule and reply pump. */
+/** Register the Feishu trusted rule and outbound reply pump. */
 export function apply(ctx: Context, config: Config): void {
   assertConfig(config)
   const model = resolvedModel(config)
@@ -130,20 +111,6 @@ export function apply(ctx: Context, config: Config): void {
     ...(config.botName === undefined ? {} : { botName: config.botName }),
     ...(model === undefined ? {} : { model }),
   }
-  const route = {
-    kind: 'exact' as const,
-    path: config.path,
-    handler: createFeishuWebhookHandler(ctx, {
-      source: config.source,
-      tokenEnv: credentialRef(config.tokenEnv),
-      ...(config.encryptKeyEnv === undefined ? {} : { encryptKeyEnv: credentialRef(config.encryptKeyEnv) }),
-      maxBodyBytes: config.maxBodyBytes,
-    }),
-  }
-  ctx.effect(
-    () => ctx.webServer.register(route),
-    `webhook-feishu: ${config.path}`,
-  )
   ctx.effect(
     () => createFeishuChannel(ctx, channelConfig, sender),
     `webhook-feishu: channel ${config.source}`,

@@ -4251,23 +4251,15 @@ export interface Config {
 
 ## `@deepseek-ai/dsh-webhook-feishu`
 
-- `inject`: `webServer` · `webhookRuntime` · `credentials`
+- `inject`: `webhookRuntime` · `credentials` · `agents` · `workspaceRegistry`
 - `refs`: [`WebhookModelSelection`](../packages/webhook/webhook/src/index.ts)
-- `source`: [`packages/webhook/webhook-feishu/src/index.ts:21`](../packages/webhook/webhook-feishu/src/index.ts)
+- `source`: [`packages/webhook/webhook-feishu/src/index.ts:19`](../packages/webhook/webhook-feishu/src/index.ts)
 
 ```ts config-catalog
-/** Required Feishu ingress configuration. */
+/** Feishu channel configuration for a transport such as the long-connection ingress. */
 export interface Config {
   /** Adapter instance name carried to rules. */
   readonly source: string
-  /** Exact absolute route path. */
-  readonly path: string
-  /** Credential reference containing the Feishu verification token. */
-  readonly tokenEnv: string
-  /** Optional credential reference containing the Feishu encrypt key. */
-  readonly encryptKeyEnv?: string
-  /** Positive raw body ceiling in bytes. */
-  readonly maxBodyBytes: number
   /** Credential reference containing the Feishu app id used for outbound replies. */
   readonly appIdEnv: string
   /** Credential reference containing the Feishu app secret used for outbound replies. */
@@ -4280,6 +4272,8 @@ export interface Config {
   readonly permissionPreset: string
   /** Session title prefix; defaults to `Feishu`. */
   readonly titlePrefix?: string
+  /** Feishu bot display name; matching group mention placeholders are removed from prompts. */
+  readonly botName?: string
   /** Optional explicit model route for every Feishu-created Session. */
   readonly model?: WebhookModelSelection
 }

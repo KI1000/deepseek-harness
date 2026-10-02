@@ -3,38 +3,32 @@
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/webhook/webhook-feishu/README.md
 /:
-  en: 79d534d9c85a83aa
-  zh: 5f1f2efb127add3d
+  en: 4a309e95d13c57d4
+  zh: b88ea2666f4f41c8
 /deepseek-ai-dsh-webhook-feishu:
   en: 1aa453cea55b1117
   zh: 82e84e1a705f9fc0
 /deepseek-ai-dsh-webhook-feishu/summary:
-  en: 392854d1f6fe8713
-  zh: bcacef25d366e8d5
+  en: a6832568b9be0396
+  zh: df6ed5ec07de8c99
 /deepseek-ai-dsh-webhook-feishu/table-of-contents:
-  en: 6dbc7c3887ac8bcd
-  zh: 257c62e0ee38603a
+  en: a3aee63ac578f270
+  zh: 10b9ca06f5ffde08
 /deepseek-ai-dsh-webhook-feishu/configuration:
-  en: 726c9fe1be3e922f
-  zh: 08d2efe0ed74615a
-/deepseek-ai-dsh-webhook-feishu/http-contract:
-  en: 8ee6b183bba1c63a
-  zh: ae3d603c607c5f54
+  en: 29d4517d72549c07
+  zh: 59bef053e19b55e6
 /deepseek-ai-dsh-webhook-feishu/feishu-channel:
-  en: a6f02cb86803293b
-  zh: 980bd4ea69dc4e80
-/deepseek-ai-dsh-webhook-feishu/dedicated-listener-composition:
-  en: 69d939f07e2de0ea
-  zh: 85486f9124ec2676
+  en: 16740cdca752df3b
+  zh: e53853e781b3590b
+/deepseek-ai-dsh-webhook-feishu/external-ingress-contract:
+  en: eff92d689a1d89d2
+  zh: 6cfc690a5f4c7c81
 /deepseek-ai-dsh-webhook-feishu/model-experience:
   en: 7b2ec9ef58f22f8e
-  zh: 1ed627cd42918f75
+  zh: 49dff517497a4114
 /deepseek-ai-dsh-webhook-feishu/model-experience/kv-cache-effect:
-  en: b569f51ea5219853
-  zh: 1abac160fa818ac8
+  en: a93de37439462b19
+  zh: 5785ad9e15ee0a68
 /deepseek-ai-dsh-webhook-feishu/known-limitations-and-deferred-work:
-  en: d91be663d9aa5d37
-  zh: 03744a09dad83065
-/deepseek-ai-dsh-webhook-feishu/known-limitations-and-deferred-work/dev-note:
-  en: b7e42ee74908ab3d
-  zh: 3baf3b4a04dede03
+  en: 8b52b70f81c4952c
+  zh: 21ce2ba5151a1ca2

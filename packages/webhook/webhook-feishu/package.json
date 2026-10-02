@@ -1,6 +1,6 @@
 {
   "name": "@deepseek-ai/dsh-webhook-feishu",
-  "description": "Signed Feishu HTTP webhook adapter for the DeepSeek Harness webhook runtime",
+  "description": "Feishu channel adapter for externally transported DeepSeek Harness webhook deliveries",
   "version": "0.2.0-rc.2",
   "publishConfig": {
     "access": "public"
@@ -35,7 +35,6 @@
     "@deepseek-ai/cordis": "workspace:~",
     "@deepseek-ai/dsh-agent": "workspace:*",
     "@deepseek-ai/dsh-credentials": "workspace:*",
-    "@deepseek-ai/dsh-host-webserver": "workspace:*",
     "@deepseek-ai/dsh-llm": "workspace:*",
     "@deepseek-ai/dsh-session": "workspace:*",
     "@deepseek-ai/dsh-webhook": "workspace:*",
@@ -51,7 +50,6 @@
     "@deepseek-ai/cordis-plugin-loader": "workspace:~",
     "@deepseek-ai/dsh-agent": "workspace:*",
     "@deepseek-ai/dsh-credentials": "workspace:*",
-    "@deepseek-ai/dsh-host-webserver": "workspace:*",
     "@deepseek-ai/dsh-llm": "workspace:*",
     "@deepseek-ai/dsh-session": "workspace:*",
     "@deepseek-ai/dsh-webhook": "workspace:*",
