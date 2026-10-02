@@ -1,5 +1,6 @@
 import { tmpdir } from 'node:os'
-import { readFileSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { Arch, Platform } from 'electron-builder'
 import { Packager } from 'app-builder-lib'
 import { describe, expect, it, vi } from 'vitest'
@@ -98,5 +99,25 @@ describe('installer preparation preserves application dependencies', () => {
     }, 'darwin', 'arm64')
     const packaged = new Set(config.files.filter((entry): entry is string => typeof entry === 'string'))
     for (const name of referenced) expect(packaged.has(`lib/${name}`)).toBe(true)
+  })
+
+  it('keeps product resource dotfiles in the desktop bundle', async () => {
+    const productResources = mkdtempSync(join(tmpdir(), 'toneclaw-product-resources-'))
+    mkdirSync(join(productResources, 'plugins', 'example', 'node_modules', '.pnpm'), { recursive: true })
+    writeFileSync(join(productResources, '.editorconfig'), '')
+    writeFileSync(join(productResources, 'plugins', 'example', 'node_modules', '.pnpm', 'state.json'), '')
+    const { createElectronBuilderConfig } = await import('../scripts/electron-builder-config.mjs')
+    const config = createElectronBuilderConfig({
+      DSH_DESKTOP_APP_ID: 'com.example.installer',
+      DSH_DESKTOP_MANDATORY_UPDATE_TEST_ORIGIN: 'https://policy.example.com',
+      DSH_DESKTOP_MANDATORY_UPDATE_CONFIG: JSON.stringify({ allowedAuthOrigins: ['https://login.example.com'] }),
+      DSH_DESKTOP_TARGET_PLATFORM: 'win32',
+      DSH_DESKTOP_TARGET_ARCH: 'x64',
+      DSH_DESKTOP_UNSIGNED: '1',
+      DSH_DESKTOP_PRODUCT_RESOURCES: productResources,
+    }, 'win32', 'x64')
+    const productResource = config.extraResources.find(resource => resource.to === 'toneclaw')
+    expect(productResource?.from).toBe(productResources)
+    expect(productResource?.filter).toEqual(['**/*', '**/.*', '**/.*/**'])
   })
 })

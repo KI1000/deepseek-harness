@@ -151,7 +151,7 @@ export function createElectronBuilderConfig(
       // Windows tray bitmaps; macOS keeps the Dock and ships no menu bar icon.
       ...(packagesWindows ? [{ from: fileURLToPath(new URL('../resources/tray-windows.ico', import.meta.url)), to: 'tray.ico' }] : []),
       // A product layer is optional. It supplies vendor transports and a relative profile patch.
-      ...(productResources === undefined ? [] : [{ from: productResources, to: 'toneclaw', filter: ['**/*'] }]),
+      ...(productResources === undefined ? [] : [{ from: productResources, to: 'toneclaw', filter: ['**/*', '**/.*', '**/.*/**'] }]),
     ],
     mac: {
       icon: fileURLToPath(new URL('../resources/icon-macos.png', import.meta.url)),
